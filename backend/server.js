@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
+const passport = require('./config/passport'); // initializes Google strategy
+
 const chatRoute = require('./routes/chat');
 const systemRoute = require('./routes/system');
 const notesRoute = require('./routes/notes');
@@ -25,15 +27,23 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/veronica'
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 const PORT = process.env.PORT || 3001;
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
+// Support multiple origins (comma-separated) or single value
+const rawOrigin = process.env.CLIENT_URL || process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
+const allowedOrigins = rawOrigin.split(',').map(o => o.trim());
 
 // ─── Security & Parsing ────────────────────────────────────────────────────────
 app.use(cors({
-  origin: ALLOWED_ORIGIN,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Render health checks, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin '${origin}' not allowed`));
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginOpenerPolicy: false,
@@ -41,27 +51,36 @@ app.use(helmet({
 }));
 app.use(express.json({ limit: '10kb' }));
 
+// ─── Passport ─────────────────────────────────────────────────────────────────
+// Initialize only — no session middleware (stateless JWT)
+app.use(passport.initialize());
+
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(requestLogger);
 app.use(rateLimiter);
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
+// Auth routes at /api/auth (includes /api/auth/google and /api/auth/google/callback)
 app.use('/api/auth', authRoute);
+
+// Protected routes
 app.use('/api/chat', authMiddleware, chatRoute);
-app.use('/api/system', systemRoute); // Public-ish
 app.use('/api/notes', authMiddleware, notesRoute);
 app.use('/api/tasks', authMiddleware, tasksRoute);
-app.use('/api/weather', weatherRoute); // Public
 app.use('/api/memory', authMiddleware, memoryRoute);
 app.use('/api/search', authMiddleware, searchRoute);
 app.use('/api/sandbox', authMiddleware, sandboxRoute);
+
+// Public routes
+app.use('/api/system', systemRoute);
+app.use('/api/weather', weatherRoute);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 404 handler for unknown routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', code: 'NOT_FOUND' });
 });
@@ -75,7 +94,7 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════════╗
 ║    VERONICA BACKEND ONLINE — Port ${PORT}      ║
 ║    Environment : ${(process.env.NODE_ENV || 'development').padEnd(12)}              ║
-║    CORS Origin : ${ALLOWED_ORIGIN.padEnd(28)} ║
+║    CORS Origins: ${allowedOrigins.join(', ').substring(0, 28).padEnd(28)} ║
 ╚══════════════════════════════════════════════╝`;
   console.log(banner);
 });

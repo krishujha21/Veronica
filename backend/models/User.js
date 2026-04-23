@@ -11,12 +11,23 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: false,  // null for Google OAuth users
+    minlength: 6,
+    default: null
   },
   username: {
     type: String,
     trim: true
+  },
+  // ─── Google OAuth fields ─────────────────────────────────────────────────────
+  googleId: {
+    type: String,
+    default: null,
+    sparse: true  // allows multiple null values on unique-like index
+  },
+  avatar: {
+    type: String,
+    default: null
   },
   createdAt: {
     type: Date,
@@ -24,16 +35,17 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Hash password before saving
+// Hash password before saving — only if it was modified and is not null
 userSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
+  if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
 
-// Compare password method
+// Compare password method — safe for passwordless accounts
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

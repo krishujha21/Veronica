@@ -1,17 +1,37 @@
 import React from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
+import { Routes, Route } from 'react-router-dom';
 import TopBar from './components/TopBar';
 import LeftRail from './components/LeftRail';
 import CenterPanel from './components/CenterPanel';
 import ArtifactCanvas from './components/ArtifactCanvas';
 import CommandPalette from './components/CommandPalette';
 import CallMode from './components/CallMode';
-
 import AuthWrapper from './pages/AuthWrapper';
+import AuthCallback from './pages/AuthCallback';
 import { Loader2 } from 'lucide-react';
 
+function Dashboard() {
+  const { rightPanelOpen, activeArtifact } = useAppContext();
+
+  return (
+    <div className="w-screen h-screen flex flex-col bg-gemini-bg text-gemini-text font-sans overflow-hidden">
+      <TopBar />
+      <div className="flex-1 flex overflow-hidden relative">
+        <LeftRail isOpen={rightPanelOpen} />
+        <div className="flex-1 relative overflow-hidden flex justify-center">
+          <CenterPanel />
+        </div>
+        {activeArtifact && <ArtifactCanvas />}
+        <CommandPalette />
+        <CallMode />
+      </div>
+    </div>
+  );
+}
+
 function AppContent() {
-  const { isMobile, rightPanelOpen, activeArtifact, isAuthenticated, authLoading } = useAppContext();
+  const { isAuthenticated, authLoading } = useAppContext();
 
   if (authLoading) {
     return (
@@ -22,31 +42,16 @@ function AppContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthWrapper />;
-  }
-
   return (
-    <div className="w-screen h-screen flex flex-col bg-gemini-bg text-gemini-text font-sans overflow-hidden">
-      <TopBar />
-      
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* The Sidebar Drawer */}
-        <LeftRail isOpen={rightPanelOpen} />
-        
-        {/* Main Stage */}
-        <div className="flex-1 relative overflow-hidden flex justify-center">
-           <CenterPanel />
-        </div>
-        
-        {/* Artifacts Side Canvas */}
-        {activeArtifact && <ArtifactCanvas />}
+    <Routes>
+      {/* Google OAuth callback — must be accessible before auth check */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* Global Overlays */}
-        <CommandPalette />
-        <CallMode />
-      </div>
-    </div>
+      {/* All other routes */}
+      <Route path="*" element={
+        isAuthenticated ? <Dashboard /> : <AuthWrapper />
+      } />
+    </Routes>
   );
 }
 
