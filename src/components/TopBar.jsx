@@ -1,16 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Search, User, Sparkles, Zap, Code, MessagesSquare, Check, Phone } from 'lucide-react';
+import { Menu, Search, User, Sparkles, Zap, Code, MessagesSquare, Check, Phone, LogOut, Settings } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function TopBar() {
-  const { preferredModel, setPreferredModel, setRightPanelOpen, rightPanelOpen, setCallModeOpen } = useAppContext();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const { 
+    preferredModel, 
+    setPreferredModel, 
+    setRightPanelOpen, 
+    rightPanelOpen, 
+    setCallModeOpen, 
+    user, 
+    logout 
+  } = useAppContext();
+  
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  
+  const modelDropdownRef = useRef(null);
+  const userDropdownRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target)) {
+        setModelDropdownOpen(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setUserDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -42,23 +57,23 @@ export default function TopBar() {
         </span>
 
         {/* Custom Model Selector Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative" ref={modelDropdownRef}>
           <button 
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={`flex items-center gap-2 bg-gemini-surface rounded-xl px-4 py-2 hover:bg-gemini-hover transition-colors text-[14.5px] font-medium ${dropdownOpen ? 'bg-gemini-hover' : ''}`}
+            onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
+            className={`flex items-center gap-2 bg-gemini-surface rounded-xl px-4 py-2 hover:bg-gemini-hover transition-colors text-[14.5px] font-medium ${modelDropdownOpen ? 'bg-gemini-hover' : ''}`}
           >
             {activeModel.name}
-            <svg className={`w-3 h-3 text-gemini-muted transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 10 6" fill="currentColor">
+            <svg className={`w-3 h-3 text-gemini-muted transition-transform duration-200 ${modelDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 10 6" fill="currentColor">
               <path d="M0 0.5L5 5.5L10 0.5H0Z"/>
             </svg>
           </button>
 
-          {dropdownOpen && (
+          {modelDropdownOpen && (
             <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-[#1e1f20] border border-[#444746] rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in origin-top-left flex flex-col p-1.5">
               {models.map(m => (
                 <button
                   key={m.id}
-                  onClick={() => { setPreferredModel(m.id); setDropdownOpen(false); }}
+                  onClick={() => { setPreferredModel(m.id); setModelDropdownOpen(false); }}
                   className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors relative ${m.id === preferredModel ? 'bg-[#282a2c]' : 'hover:bg-gemini-hover'}`}
                 >
                   <div className={`w-8 h-8 rounded-full bg-[#131314] flex items-center justify-center shrink-0 ${m.color}`}>
@@ -92,9 +107,42 @@ export default function TopBar() {
         <button className="hidden md:flex p-2 rounded-full hover:bg-gemini-hover transition-colors text-gemini-muted">
           <Search size={22} />
         </button>
-        <button className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white ml-2 shadow-inner">
-           <User size={20} />
-        </button>
+        
+        {/* User Account Dropdown */}
+        <div className="relative ml-2" ref={userDropdownRef}>
+          <button 
+            onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+            className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white shadow-inner overflow-hidden border-2 border-transparent hover:border-white/20 transition-all active:scale-95"
+          >
+            {user?.avatar ? (
+              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User size={20} />
+            )}
+          </button>
+
+          {userDropdownOpen && (
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[240px] bg-[#1e1f20] border border-[#444746] rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in origin-top-right flex flex-col p-2">
+              <div className="px-3 py-2 mb-1 border-b border-white/5">
+                <p className="text-[14px] font-medium text-white truncate">{user?.username || 'User'}</p>
+                <p className="text-[12px] text-gemini-muted truncate">{user?.email}</p>
+              </div>
+              
+              <button className="flex items-center gap-3 p-2.5 rounded-xl text-left hover:bg-white/5 transition-colors text-[14px] text-gemini-text">
+                <Settings size={18} className="text-gemini-muted" />
+                Settings
+              </button>
+              
+              <button 
+                onClick={logout}
+                className="flex items-center gap-3 p-2.5 rounded-xl text-left hover:bg-red-500/10 transition-colors text-[14px] text-red-400 group"
+              >
+                <LogOut size={18} className="text-red-400/70 group-hover:text-red-400" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
     </div>
