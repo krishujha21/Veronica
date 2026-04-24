@@ -3,7 +3,6 @@ const { chatWithGemini } = require('./gemini');
 const { chatWithClaude } = require('./claude');
 const { chatWithMistral, streamWithMistral } = require('./mistral');
 const codestral = require('./codestral');
-const { getMemory } = require('../routes/memory');
 
 /* ── Coding-related trigger keywords ── */
 const CODESTRAL_TRIGGERS = [
@@ -18,13 +17,9 @@ const CODESTRAL_TRIGGERS = [
  */
 async function routeChat(message, history = [], requestedModel = 'groq', customSystemPrompt = null, temperature = 0.7, attachments = []) {
   const start = Date.now();
-
-  // Inject persisted user bio into system prompt
-  const { bio } = getMemory();
-  let effectiveSystemPrompt = customSystemPrompt || '';
-  if (bio && bio.length > 0) {
-    effectiveSystemPrompt = `[User Context]: ${bio}\n\n${effectiveSystemPrompt}`.trim();
-  }
+  
+  // Note: customSystemPrompt already includes the User Bio injected by the chat route.
+  const effectiveSystemPrompt = customSystemPrompt || '';
 
   /* ── Auto-route coding queries to Codestral ── */
   const codestralAvailable = process.env.MISTRAL_API_KEY &&
@@ -68,12 +63,8 @@ async function routeChat(message, history = [], requestedModel = 'groq', customS
  * Streaming router
  */
 async function routeChatStream(message, history = [], requestedModel = 'groq', customSystemPrompt = null, temperature = 0.7, attachments = []) {
-  // Inject persisted user bio into system prompt
-  const { bio } = getMemory();
-  let effectiveSystemPrompt = customSystemPrompt || '';
-  if (bio && bio.length > 0) {
-    effectiveSystemPrompt = `[User Context]: ${bio}\n\n${effectiveSystemPrompt}`.trim();
-  }
+  // Note: customSystemPrompt already includes the User Bio injected by the chat route.
+  const effectiveSystemPrompt = customSystemPrompt || '';
 
   /* ── Auto-route coding queries to Codestral streaming ── */
   const codestralAvailable = process.env.MISTRAL_API_KEY &&
