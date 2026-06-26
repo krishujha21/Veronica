@@ -21,7 +21,7 @@ export function useSpeech() {
     }
 
     const setSpeechState = () => setIsSpeaking(window.speechSynthesis.speaking);
-    
+
     // Poll state since some browsers don't reliably fire end events if cancelled
     const interval = setInterval(setSpeechState, 500);
     return () => clearInterval(interval);
@@ -44,13 +44,13 @@ export function useSpeech() {
 
     // Try to find a good female/AI voice
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
-      v.name.includes('Google UK English Female') || 
-      v.name.includes('Samantha') || 
+    const preferredVoice = voices.find(v =>
+      v.name.includes('Google UK English Female') ||
+      v.name.includes('Samantha') ||
       v.name.includes('Victoria') ||
       (v.lang.startsWith('en') && v.name.includes('Female'))
     );
-    
+
     if (preferredVoice) {
       utterance.voice = preferredVoice;
     }

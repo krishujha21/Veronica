@@ -3,7 +3,7 @@ import { chatAPI } from '../api/client';
 
 const getPersonaPrompt = (personaName) => {
   const base = "You are Veronica, a sleek personal AI assistant built for the user. ";
-  switch(personaName) {
+  switch (personaName) {
     case 'developer':
       return base + "You are an expert Senior Software Engineer. Provide direct, highly technical code responses. Do not lecture. Output clean, optimal code.";
     case 'writer':
@@ -42,17 +42,17 @@ export function useChat() {
     let finalPersona = persona;
     let cleanText = text;
 
-    // Phase 1: Parse Slash Commands
+
     if (text.startsWith('/')) {
       const parts = text.split(' ');
       const cmd = parts[0].toLowerCase();
-      
+
       const modelCommands = { '/codestral': 'codestral', '/gemini': 'gemini', '/groq': 'groq', '/claude': 'claude', '/mistral': 'mistral' };
       const personaCommands = { '/developer': 'developer', '/sarcastic': 'sarcastic', '/writer': 'writer' };
 
       if (modelCommands[cmd]) { finalModel = modelCommands[cmd]; cleanText = parts.slice(1).join(' '); }
       else if (personaCommands[cmd]) { finalPersona = personaCommands[cmd]; cleanText = parts.slice(1).join(' '); }
-      
+
       if (!cleanText.trim()) return; // don't send empty message if only command was typed
     }
 
@@ -75,7 +75,7 @@ export function useChat() {
         updatedAt: Date.now(),
         messages: [userMsg]
       };
-      
+
       setThreads(prev => [newThread, ...prev]);
       setActiveThreadId(targetThreadId);
       currentThreadMessages = [userMsg];
@@ -91,7 +91,7 @@ export function useChat() {
     }
 
     setIsLoading(true);
-    
+
     // Create an empty bot message that we will stream into
     const botMsgId = (Date.now() + 1).toString();
     const startTime = Date.now();
@@ -103,7 +103,7 @@ export function useChat() {
       isStreaming: true,
       timestamp: Date.now()
     };
-    
+
     setThreads(prev => prev.map(t => {
       if (t.id === targetThreadId) {
         return { ...t, messages: [...t.messages, botMsg].slice(-100), updatedAt: Date.now() };
@@ -146,11 +146,11 @@ export function useChat() {
         while (true) {
           const { value, done: readerDone } = await reader.read();
           if (readerDone) break;
-          
+
           if (value) {
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-            
+
             for (const line of lines) {
               if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                 try {
@@ -159,7 +159,7 @@ export function useChat() {
                     accumulatedText += data.token;
                     setThreads(prev => prev.map(t => {
                       if (t.id === targetThreadId) {
-                        const updatedMessages = t.messages.map(m => 
+                        const updatedMessages = t.messages.map(m =>
                           m.id === botMsgId ? { ...m, content: accumulatedText } : m
                         );
                         return { ...t, messages: updatedMessages, updatedAt: Date.now() };
@@ -175,10 +175,10 @@ export function useChat() {
       } else {
         // Standard API routing for Gemini/Claude
         const response = await chatAPI.send(cleanText, apiHistory.slice(0, -1), finalModel, systemPrompt, temperature, encodedAttachments, useWebSearch);
-        
+
         setThreads(prev => prev.map(t => {
           if (t.id === targetThreadId) {
-            const updatedMessages = t.messages.map(m => 
+            const updatedMessages = t.messages.map(m =>
               m.id === botMsgId ? { ...m, content: response.data.reply, model: response.data.model, latency: response.data.latency } : m
             );
             return { ...t, messages: updatedMessages, updatedAt: Date.now() };
@@ -191,7 +191,7 @@ export function useChat() {
       const finalLatency = Date.now() - startTime;
       setThreads(prev => prev.map(t => {
         if (t.id === targetThreadId) {
-          const updatedMessages = t.messages.map(m => 
+          const updatedMessages = t.messages.map(m =>
             m.id === botMsgId ? { ...m, isStreaming: false, latency: m.latency || finalLatency } : m
           );
           return { ...t, messages: updatedMessages, updatedAt: Date.now() };
@@ -203,7 +203,7 @@ export function useChat() {
       console.error('Chat error:', err);
       setThreads(prev => prev.map(t => {
         if (t.id === targetThreadId) {
-          const updatedMessages = t.messages.map(m => 
+          const updatedMessages = t.messages.map(m =>
             m.id === botMsgId ? { ...m, content: m.content + '\n\n**[Error connecting to AI Provider]**', isStreaming: false } : m
           );
           return { ...t, messages: updatedMessages, updatedAt: Date.now() };
@@ -228,8 +228,8 @@ export function useChat() {
         targetIndex = next[tIdx].messages.findIndex(m => m.id === messageId);
         if (targetIndex > -1) {
           // Truncate messages up to the edited one
-          next[tIdx] = { 
-            ...next[tIdx], 
+          next[tIdx] = {
+            ...next[tIdx],
             messages: next[tIdx].messages.slice(0, targetIndex),
             updatedAt: Date.now()
           };

@@ -33,7 +33,7 @@ export default function CallMode() {
 
   return (
     <div className="fixed inset-0 z-[200] bg-[#020205] flex flex-col items-center justify-between py-20 px-6 font-sans animate-zoom-in">
-      
+
       {/* Header */}
       <div className="w-full max-w-md flex justify-center text-center">
         <span className="text-white/40 tracking-widest text-sm font-medium">VERONICA CONTINUOUS MODE</span>
@@ -44,7 +44,7 @@ export default function CallMode() {
         <div className={`transform scale-[3] sm:scale-[4] transition-all duration-700 ${isListening ? 'opacity-100' : 'opacity-60'} ${!isListening && isLoading ? 'animate-pulse' : ''}`}>
           <Orb isThinking={isLoading || !isListening} />
         </div>
-        
+
         <div className="absolute -bottom-24 text-center">
           <p className="text-white text-xl font-medium tracking-wide">
             {isLoading ? 'Thinking...' : isListening ? 'Listening...' : 'Resting...'}
@@ -57,7 +57,7 @@ export default function CallMode() {
 
       {/* Controls */}
       <div className="w-full max-w-md flex justify-center">
-        <button 
+        <button
           onClick={() => { stopListening(); setCallModeOpen(false); }}
           className="w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)]"
         >

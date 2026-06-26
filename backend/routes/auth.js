@@ -34,9 +34,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-/**
- * POST /api/auth/login
- */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -51,7 +48,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    // Google-only account — no password set
     if (!user.password) {
       return res.status(401).json({
         error: 'This account uses Google Sign-In. Please continue with Google.',
@@ -72,9 +68,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/**
- * GET /api/auth/me
- */
 router.get('/me', auth, async (req, res) => {
   try {
     res.json(req.user);
@@ -83,12 +76,6 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-// ─── Google OAuth Routes ────────────────────────────────────────────────────
-
-/**
- * GET /api/auth/google
- * Kicks off the Google OAuth flow
- */
 router.get('/google',
   passport.authenticate('google', {
     scope: ['profile', 'email'],
@@ -96,11 +83,6 @@ router.get('/google',
   })
 );
 
-/**
- * GET /api/auth/google/callback
- * Google redirects here after user consents.
- * Issues a JWT and redirects the frontend with ?token=...
- */
 router.get('/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${CLIENT_URL}/auth?error=google_failed` }),
   (req, res) => {
@@ -114,5 +96,4 @@ router.get('/google/callback',
     }
   }
 );
-
 module.exports = router;
