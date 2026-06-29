@@ -7,11 +7,9 @@ export default function InputBar({ input, setInput, onSubmit, isProcessing, webS
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const COMMANDS = [
-    { cmd: '/codestral', desc: 'Force Code Model' },
-    { cmd: '/groq', desc: 'Force Groq Fast Stream' },
-    { cmd: '/mistral', desc: 'Force Mistral' },
     { cmd: '/developer', desc: 'Persona: Senior Engineer' },
     { cmd: '/sarcastic', desc: 'Persona: Sarcastic' },
     { cmd: '/writer', desc: 'Persona: Creative Writer' },
@@ -62,8 +60,20 @@ export default function InputBar({ input, setInput, onSubmit, isProcessing, webS
     const files = Array.from(e.target.files);
     if (!files.length) return;
     
+    // Filter out files > 5MB
+    const validFiles = [];
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`File ${file.name} is too large (max 5MB)`);
+      } else {
+        validFiles.push(file);
+      }
+    }
+    
+    if (!validFiles.length) return;
+    
     // Create local object URLs for preview
-    const newAttachments = files.map(file => ({
+    const newAttachments = validFiles.map(file => ({
       file,
       id: Math.random().toString(36).substr(2, 9),
       url: URL.createObjectURL(file),
@@ -72,8 +82,9 @@ export default function InputBar({ input, setInput, onSubmit, isProcessing, webS
     }));
     
     setAttachments(prev => [...prev, ...newAttachments]);
-    // Reset file input
+    // Reset file inputs
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const removeAttachment = (id) => {
@@ -170,17 +181,20 @@ export default function InputBar({ input, setInput, onSubmit, isProcessing, webS
 
         <div className="flex items-end gap-2 w-full">
           {/* Attachment Toggle */}
-          <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+          <input type="file" accept="image/*" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+          <input type="file" accept="image/*" capture="environment" className="hidden" ref={cameraInputRef} onChange={handleFileChange} />
+          
           <button 
             onClick={() => fileInputRef.current?.click()}
             className="h-[44px] w-[44px] shrink-0 flex items-center justify-center rounded-full text-gemini-text hover:bg-gemini-hover transition-colors"
-            title="Upload Files"
+            title="Upload Image"
           >
-            <Plus size={24} />
+            <Image size={22} />
           </button>
           <button 
+            onClick={() => cameraInputRef.current?.click()}
             className="h-[44px] w-[44px] shrink-0 flex items-center justify-center rounded-full text-gemini-text hover:bg-gemini-hover transition-colors"
-            title="Live Sight (Camera/Screen)"
+            title="Capture Photo"
           >
             <Camera size={20} />
           </button>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Search, User, Zap, Code, Check, Phone, LogOut, Settings } from 'lucide-react';
+import { Menu, Search, User, Zap, Code, Check, Phone, LogOut, Settings, Sparkles } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function TopBar() {
@@ -32,11 +32,8 @@ export default function TopBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const models = [
-    { id: 'groq', name: 'Llama Ultra 3', icon: Zap, color: 'text-[#f18c8e]', desc: 'Ultra-fast streaming generation' },
-    { id: 'codestral', name: 'Codestral', icon: Code, color: 'text-[#c96ddc]', desc: 'Expert coding & algorithms' },
-  ];
-  const activeModel = models.find(m => m.id === preferredModel) || models[0];
+  const models = [];
+  const activeModel = models.find(m => m.id === preferredModel);
 
   return (
     <div className="w-full h-[64px] bg-gemini-bg flex items-center justify-between px-4 sm:px-6 shrink-0 relative z-30">
@@ -60,7 +57,7 @@ export default function TopBar() {
             onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
             className={`flex items-center gap-2 bg-gemini-surface rounded-xl px-4 py-2 hover:bg-gemini-hover transition-colors text-[14.5px] font-medium ${modelDropdownOpen ? 'bg-gemini-hover' : ''}`}
           >
-            {activeModel.name}
+            {activeModel?.name || 'No Model'}
             <svg className={`w-3 h-3 text-gemini-muted transition-transform duration-200 ${modelDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 10 6" fill="currentColor">
               <path d="M0 0.5L5 5.5L10 0.5H0Z"/>
             </svg>

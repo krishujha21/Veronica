@@ -19,9 +19,14 @@ export default function LeftRail({ isOpen }) {
     }
   };
 
-  // Sort threads by recently updated and filter by search query
+  // Sort threads by recently updated and filter by search query (deep search in messages)
   const sortedThreads = [...threads]
-    .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(t => {
+      const q = searchQuery.toLowerCase();
+      if (!q) return true;
+      if (t.title.toLowerCase().includes(q)) return true;
+      return t.messages?.some(m => m.content.toLowerCase().includes(q));
+    })
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (

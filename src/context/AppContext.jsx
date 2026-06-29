@@ -71,7 +71,12 @@ export function AppProvider({ children }) {
       setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
-      logout();
+      if (err.response?.status === 401) {
+        logout();
+      } else {
+        console.error('[Auth] check failed but not 401, preserving token:', err);
+        setIsAuthenticated(true);
+      }
     } finally {
       setAuthLoading(false);
     }
