@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Search, User, Sparkles, Zap, Code, MessagesSquare, Check, Phone, LogOut, Settings } from 'lucide-react';
+import { Menu, Search, User, Zap, Code, Check, Phone, LogOut, Settings } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function TopBar() {
@@ -33,9 +33,7 @@ export default function TopBar() {
   }, []);
 
   const models = [
-    { id: 'gemini', name: 'Gemini Advanced', icon: Sparkles, color: 'text-[#8ab4f8]', desc: 'Most capable logic & reasoning' },
     { id: 'groq', name: 'Llama Ultra 3', icon: Zap, color: 'text-[#f18c8e]', desc: 'Ultra-fast streaming generation' },
-    { id: 'claude', name: 'Claude Haiku', icon: MessagesSquare, color: 'text-[#fac173]', desc: 'Natural conversational flow' },
     { id: 'codestral', name: 'Codestral', icon: Code, color: 'text-[#c96ddc]', desc: 'Expert coding & algorithms' },
   ];
   const activeModel = models.find(m => m.id === preferredModel) || models[0];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sparkles, MessageSquarePlus, Activity, MessagesSquare, Code, Zap } from 'lucide-react';
+import { Search, MessageSquarePlus, Activity, Code, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export default function CommandPalette() {
@@ -38,8 +38,6 @@ export default function CommandPalette() {
 
   const ACTIONS = [
     { title: 'New Chat', desc: 'Start a fresh conversation', icon: MessageSquarePlus, action: () => { setActiveThreadId(null); } },
-    { title: 'Switch to Gemini', desc: 'Google Gemini 2.0 Flash', icon: Sparkles, action: () => setPreferredModel('gemini') },
-    { title: 'Switch to Claude', desc: 'Anthropic Claude Haiku', icon: MessagesSquare, action: () => setPreferredModel('claude') },
     { title: 'Switch to Groq', desc: 'Fast LLama 3', icon: Zap, action: () => setPreferredModel('groq') },
     { title: 'Switch to Codestral', desc: 'Mistral Code Model', icon: Code, action: () => setPreferredModel('codestral') },
     { title: 'View Telemetry', desc: 'Open System Stats', icon: Activity, action: () => { setRightPanelOpen(true); setRightPanelView('overview'); } },

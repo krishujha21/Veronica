@@ -1,6 +1,4 @@
 const { chatWithGroq, streamWithGroq } = require('./groq');
-const { chatWithGemini } = require('./gemini');
-const { chatWithClaude } = require('./claude');
 const { chatWithMistral, streamWithMistral } = require('./mistral');
 const codestral = require('./codestral');
 
@@ -39,8 +37,6 @@ async function routeChat(message, history = [], requestedModel = 'groq', customS
 
   const providers = {
     'groq':      { name: 'Groq (Llama 3)',       fn: (m, h, s, t) => chatWithGroq(m, h, s, t, attachments)    },
-    'gemini':    { name: 'Gemini 2.0 Flash',    fn: (m, h, s, t) => chatWithGemini(m, h, s, t, attachments)  },
-    'claude':    { name: 'Claude 3.5 Haiku',    fn: (m, h, s, t) => chatWithClaude(m, h, s, t, attachments)  },
     'mistral':   { name: 'Codestral (Mistral)', fn: (m, h, s, t) => chatWithMistral(m, h, s, t)              },
     'codestral': { name: 'Codestral (Code)',    fn: (m, h, s, t) => codestral.chat(m, h, s, t)               }
   };

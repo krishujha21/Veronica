@@ -47,7 +47,7 @@ export function useChat() {
       const parts = text.split(' ');
       const cmd = parts[0].toLowerCase();
 
-      const modelCommands = { '/codestral': 'codestral', '/gemini': 'gemini', '/groq': 'groq', '/claude': 'claude', '/mistral': 'mistral' };
+      const modelCommands = { '/codestral': 'codestral', '/groq': 'groq', '/mistral': 'mistral' };
       const personaCommands = { '/developer': 'developer', '/sarcastic': 'sarcastic', '/writer': 'writer' };
 
       if (modelCommands[cmd]) { finalModel = modelCommands[cmd]; cleanText = parts.slice(1).join(' '); }
@@ -123,9 +123,14 @@ export function useChat() {
 
       if (supportsStreaming) {
         // Native fetch for SSE streaming
+        // FIX: Include Authorization header — the axios interceptor doesn't apply to raw fetch()
+        const authToken = localStorage.getItem('veronica_auth_token');
         const response = await fetch(chatAPI.streamUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken && { Authorization: `Bearer ${authToken}` })
+          },
           body: JSON.stringify({
             message: cleanText,
             history: apiHistory.slice(0, -1),
@@ -137,7 +142,15 @@ export function useChat() {
           })
         });
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          // FIX: Try to read the error body from the backend for meaningful messages
+          let errorMsg = `HTTP ${response.status}`;
+          try {
+            const errData = await response.json();
+            errorMsg = errData.error || errorMsg;
+          } catch (_) { /* response wasn't JSON */ }
+          throw new Error(errorMsg);
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
@@ -173,7 +186,7 @@ export function useChat() {
           }
         }
       } else {
-        // Standard API routing for Gemini/Claude
+        // Standard (non-streaming) API routing
         const response = await chatAPI.send(cleanText, apiHistory.slice(0, -1), finalModel, systemPrompt, temperature, encodedAttachments, useWebSearch);
 
         setThreads(prev => prev.map(t => {
@@ -200,11 +213,18 @@ export function useChat() {
       }));
 
     } catch (err) {
-      console.error('Chat error:', err);
+      // FIX: Extract the actual error message from the backend response.
+      // For axios errors, the real message is in err.response.data.error.
+      // For fetch errors / network failures, fall back to err.message.
+      const backendMsg = err.response?.data?.error  // axios structured error
+        || err.message                               // fetch / network error
+        || 'Unknown error';
+      console.error('[useChat] Provider error:', { status: err.response?.status, backendMsg, raw: err });
+
       setThreads(prev => prev.map(t => {
         if (t.id === targetThreadId) {
           const updatedMessages = t.messages.map(m =>
-            m.id === botMsgId ? { ...m, content: m.content + '\n\n**[Error connecting to AI Provider]**', isStreaming: false } : m
+            m.id === botMsgId ? { ...m, content: m.content + `\n\n**[Error: ${backendMsg}]**`, isStreaming: false } : m
           );
           return { ...t, messages: updatedMessages, updatedAt: Date.now() };
         }

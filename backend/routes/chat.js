@@ -46,10 +46,15 @@ router.post('/', async (req, res, next) => {
     const { reply, model: usedModel, latency } = await routeChat(message.trim(), history, model, enhancedSystemPrompt, temperature, attachments);
     res.json({ reply, model: usedModel, latency, timestamp: new Date().toISOString() });
   } catch (err) {
-    if (err.code === 'AI_UNAVAILABLE') {
-      return res.status(503).json({ error: err.message, code: err.code });
-    }
-    next(err);
+    // FIX: Always return structured JSON so the frontend can display the real error.
+    // Previously, non-AI_UNAVAILABLE errors went to next() → generic 500, hiding the cause.
+    console.error('[Chat Route Error]', err.code || 'UNKNOWN', err.message);
+    const status = err.status || (err.code === 'AI_UNAVAILABLE' ? 503 : 500);
+    return res.status(status).json({
+      error: err.message || 'An unexpected error occurred',
+      code: err.code || 'CHAT_ERROR',
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

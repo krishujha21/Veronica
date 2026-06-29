@@ -10,9 +10,7 @@ export default function InputBar({ input, setInput, onSubmit, isProcessing, webS
 
   const COMMANDS = [
     { cmd: '/codestral', desc: 'Force Code Model' },
-    { cmd: '/gemini', desc: 'Force Gemini 2.0' },
     { cmd: '/groq', desc: 'Force Groq Fast Stream' },
-    { cmd: '/claude', desc: 'Force Claude Haiku' },
     { cmd: '/mistral', desc: 'Force Mistral' },
     { cmd: '/developer', desc: 'Persona: Senior Engineer' },
     { cmd: '/sarcastic', desc: 'Persona: Sarcastic' },
