@@ -7,7 +7,7 @@ import { useAppContext } from '../context/AppContext';
 import { CheckCircle2, Circle, Sun, CloudRain, Bell } from 'lucide-react';
 
 export default function CenterPanel() {
-  const { messages, isLoading, isMobile, isRecording, tasks, weather } = useAppContext();
+  const { user, messages, isLoading, isMobile, isRecording, tasks, weather } = useAppContext();
   const { sendMessage, editAndResend } = useChat();
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
@@ -61,7 +61,7 @@ export default function CenterPanel() {
           <div className="flex flex-col min-h-[70%] justify-center mt-[-40px]">
             <div className="mb-10 animate-fade-in pl-2">
               <h1 className="text-[44px] md:text-[56px] font-medium tracking-tight leading-[1.1] mb-2 gemini-gradient-text">
-                Hello, Krishu
+                Hello, {user?.username || 'Guest'}
               </h1>
               <h2 className="text-[44px] md:text-[56px] font-medium tracking-tight text-[#444746] leading-[1.1]">
                 How can I help you today?
